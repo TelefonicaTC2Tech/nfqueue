@@ -60,7 +60,8 @@ func (p *Packet) Modify(buffer []byte) error {
 }
 
 func (p *Packet) setVerdict(verdict, len C.u_int32_t, buffer *C.uchar) error {
-	if C.nfq_set_verdict(p.q.qh, p.id, verdict, len, buffer) < 0 {
+	id := C.u_int32_t(p.id)
+	if C.nfq_set_verdict(p.q.qh, id, verdict, len, buffer) < 0 {
 		return fmt.Errorf("Error setting verdict %d for packet %d", verdict, p.id)
 	}
 	return nil
