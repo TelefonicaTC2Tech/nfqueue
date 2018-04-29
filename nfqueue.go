@@ -40,7 +40,7 @@ type PacketHandler interface {
 // Packet struct provides the packet data and methods to accept, drop or modify the packet.
 type Packet struct {
 	Buffer []byte
-	id     C.uint32_t
+	id     C.u_int32_t
 	q      *Queue
 }
 
@@ -56,10 +56,10 @@ func (p *Packet) Drop() error {
 
 // Modify the packet with a new buffer.
 func (p *Packet) Modify(buffer []byte) error {
-	return p.setVerdict(C.NF_ACCEPT, C.uint32_t(len(buffer)), (*C.uchar)(unsafe.Pointer(&buffer[0])))
+	return p.setVerdict(C.NF_ACCEPT, C.u_int32_t(len(buffer)), (*C.uchar)(unsafe.Pointer(&buffer[0])))
 }
 
-func (p *Packet) setVerdict(verdict, len C.uint32_t, buffer *C.uchar) error {
+func (p *Packet) setVerdict(verdict, len C.u_int32_t, buffer *C.uchar) error {
 	if C.nfq_set_verdict(p.q.qh, p.id, verdict, len, buffer) < 0 {
 		return fmt.Errorf("Error setting verdict %d for packet %d", verdict, p.id)
 	}
