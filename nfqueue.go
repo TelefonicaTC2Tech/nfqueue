@@ -40,7 +40,7 @@ type PacketHandler interface {
 // Packet struct provides the packet data and methods to accept, drop or modify the packet.
 type Packet struct {
 	Buffer []byte
-	id     C.u_int32_t
+	id     uint32
 	q      *Queue
 }
 
