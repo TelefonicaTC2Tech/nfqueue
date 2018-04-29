@@ -27,7 +27,7 @@ func handle(id C.uint, buffer *C.uchar, len C.int, cbData *unsafe.Pointer) int {
 	queueID := (*uint16)(unsafe.Pointer(cbData))
 	q := queueRegistry.Get(*queueID)
 	packet := &Packet{
-		id:     id,
+		id:     uint32(id),
 		Buffer: C.GoBytes(unsafe.Pointer(buffer), len),
 		q:      q,
 	}
