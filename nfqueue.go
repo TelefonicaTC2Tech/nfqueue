@@ -196,7 +196,6 @@ func (q *Queue) Stop() error {
 	if C.nfq_close(q.h) < 0 {
 		return errors.New("Error in nfq_close")
 	}
-	pchan:   make(chan *Packet, 1),
-
+	close(q.pchan)
 	return nil
 }
