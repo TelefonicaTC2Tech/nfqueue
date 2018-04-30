@@ -99,6 +99,7 @@ type Queue struct {
 	h       *C.struct_nfq_handle
 	qh      *C.struct_nfq_q_handle
 	fd      C.int
+	pchan   chan *Packet
 }
 
 // NewQueue creates a Queue instance and registers it.
@@ -119,6 +120,9 @@ func NewQueue(queueID uint16, handler PacketHandler, cfg *QueueConfig) *Queue {
 // This method initializes the netfilter queue and configures it.
 // The thread is blocked until the queue is stopped externally.
 func (q *Queue) Start() error {
+	// Channel to process
+	q.pchan = make(chan *Packet, 1)
+
 	// Initialize the netfilter queue
 	if q.h = C.nfq_open(); q.h == nil {
 		return errors.New("Error in nfq_open")
@@ -165,6 +169,15 @@ func (q *Queue) Start() error {
 		C.nfnl_rcvbufsiz(C.nfq_nfnlh(q.h), C.uint(q.cfg.BufferSize))
 	}
 
+	go func() {
+		for {
+			select {
+			case p := <-q.pchan:
+				q.handler.Handle(p)
+			}
+		}
+	}()
+
 	if ret := C.nfqueue_loop(q.h, q.fd); ret < 0 {
 		return errors.New("Error in nfqueue_loop")
 	}
@@ -183,5 +196,7 @@ func (q *Queue) Stop() error {
 	if C.nfq_close(q.h) < 0 {
 		return errors.New("Error in nfq_close")
 	}
+	pchan:   make(chan *Packet, 1),
+
 	return nil
 }
