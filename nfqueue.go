@@ -121,7 +121,8 @@ func NewQueue(queueID uint16, handler PacketHandler, cfg *QueueConfig) *Queue {
 // The thread is blocked until the queue is stopped externally.
 func (q *Queue) Start() error {
 	// Channel to process
-	q.pchan = make(chan *Packet, 1)
+	q.pchan = make(chan *Packet, 1024)
+	fmt.Println("Configuring packet channel with 1024")
 
 	// Initialize the netfilter queue
 	if q.h = C.nfq_open(); q.h == nil {
@@ -165,6 +166,7 @@ func (q *Queue) Start() error {
 		return errors.New("Error in nfq_fd")
 	}
 
+	q.cfg.BufferSize = 1024 * 16384
 	if q.cfg.BufferSize > 0 {
 		C.nfnl_rcvbufsiz(C.nfq_nfnlh(q.h), C.uint(q.cfg.BufferSize))
 	}
