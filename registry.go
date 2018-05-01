@@ -55,5 +55,8 @@ func (r *QueueRegistry) Unregister(queueID uint16) {
 
 // Get returns a queue from the registry based on the queueID.
 func (r *QueueRegistry) Get(queueID uint16) *Queue {
-	return r.queues[queueID]
+	if len(r.queues) > int(queueID) {
+		return r.queues[queueID]
+	}
+	return nil
 }

@@ -54,7 +54,7 @@ Each packet that is processed by a netfilter queue is encapsulated in the type `
 // Packet struct provides the packet data and methods to accept, drop or modify the packet.
 type Packet struct {
 	Buffer []byte
-	id     C.uint32_t
+	id     uint32
 	q      *Queue
 }
 
@@ -95,6 +95,7 @@ func NewQueue(id uint16) *Queue {
     }
     queueCfg := &nfqueue.QueueConfig{
 		MaxPackets: 1000,
+		BufferSize: 16 * 1024 * 1024,
 		QueueFlags: []nfqueue.QueueFlag{nfqueue.FailOpen},
 	}
     // Pass as packet handler the current instance because it implements nfqueue.PacketHandler interface

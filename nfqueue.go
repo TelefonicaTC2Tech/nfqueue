@@ -127,10 +127,8 @@ func (q *Queue) Start() error {
 	// It is not possible to pass the queue as callback data due to error:
 	// runtime error: cgo argument has Go pointer to Go pointer
 	// As a result, we have to pass the queue ID and use the registry to retrieve the queue.
-	qid := q.ID
-	cb := (*C.nfq_callback)(C.nfqueue_cb)
-	if q.qh = C.nfq_create_queue(q.h, C.u_int16_t(q.ID), cb, unsafe.Pointer(&qid)); q.qh == nil {
-		return errors.New("Error in nfq_create_queue")
+	if q.qh = C.nfqueue_create_queue(q.h, C.u_int16_t(q.ID)); q.qh == nil {
+		return errors.New("Error in nfqueue_create_queue")
 	}
 
 	// Configure mode (packet copy) and the packet size. Note that this is not configurable on purpose.
@@ -156,8 +154,7 @@ func (q *Queue) Start() error {
 		}
 	}
 
-	q.fd = C.nfq_fd(q.h)
-	if q.fd < 0 {
+	if q.fd = C.nfq_fd(q.h); q.fd < 0 {
 		return errors.New("Error in nfq_fd")
 	}
 
