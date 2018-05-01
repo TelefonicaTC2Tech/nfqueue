@@ -31,8 +31,8 @@ const uint MAX_PACKET_SIZE = 65535;
 // - id (packet identifier)
 // - buffer (pointer to the packet data starting from IP layer)
 // - len (buffer length)
-// - cb_data (pointer to the queue identifier)
-extern int handle(uint32_t id, unsigned char* buffer, int len, void *cb_data);
+// - queue_id (queue identifier)
+extern int handle(uint32_t id, unsigned char* buffer, int len, int queue_id);
 
 int nfqueue_cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg, struct nfq_data *nfa, void *cb_data)
 {
@@ -40,8 +40,11 @@ int nfqueue_cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg, struct nfq_data 
     struct nfqnl_msg_packet_hdr *ph = nfq_get_msg_packet_hdr(nfa);
     uint32_t id = ntohl(ph->packet_id);
     int ret = nfq_get_payload(nfa, &buffer);
+    return handle(id, buffer, ret, (intptr_t)cb_data);
+}
 
-    return handle(id, buffer, ret, cb_data);
+static struct nfq_q_handle *nfqueue_create_queue(struct nfq_handle *h, u_int16_t queue_id) {
+    return nfq_create_queue(h, queue_id, &nfqueue_cb, (void *)(intptr_t)queue_id);
 }
 
 static int nfqueue_loop(struct nfq_handle *h, int fd)
