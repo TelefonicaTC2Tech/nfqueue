@@ -23,13 +23,13 @@ import (
 )
 
 //export handle
-func handle(id uint16, buffer *C.uchar, len int, queueID int) int {
-	q := queueRegistry.Get(queueID)
+func handle(id uint32, buffer *C.uchar, len C.int, queueID int) int {
+	q := queueRegistry.Get(uint16(queueID))
 	if q == nil {
 		return 0
 	}
 	packet := &Packet{
-		id:     uint32(id),
+		id:     id,
 		Buffer: C.GoBytes(unsafe.Pointer(buffer), len),
 		q:      q,
 	}
