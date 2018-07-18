@@ -26,6 +26,8 @@
 // Maximum packet size of a TCP packet
 const uint MAX_PACKET_SIZE = 65535;
 
+// Main distribs still use libnetfilter_queue 1.0.2, which does not contain UID and GID stuff
+// To work on most systems, I disable them for now
 
 // handle is the packet handler function implemented in go.
 // The arguments are:
@@ -45,7 +47,8 @@ const uint MAX_PACKET_SIZE = 65535;
 // - hw_pad (padding of the HW address)
 // - hw_addr (HW address)
 // - queue_id (queue identifier)
-extern int handle(uint32_t id, unsigned char* buffer, int len, int has_uid, int has_gid, u_int32_t uid, u_int32_t gid, u_int32_t indev, u_int32_t outdev, u_int32_t physindev, u_int32_t physoutdev, u_int32_t nfmark, u_int16_t hw_addrlen, u_int16_t hw_pad, u_int8_t hw_addr0, u_int8_t hw_addr1, u_int8_t hw_addr2, u_int8_t hw_addr3, u_int8_t hw_addr4, u_int8_t hw_addr5, u_int8_t hw_addr6, u_int8_t hw_addr7, int queue_id);
+extern int handle(uint32_t id, unsigned char* buffer, int len, u_int32_t indev, u_int32_t outdev, u_int32_t physindev, u_int32_t physoutdev, u_int32_t nfmark, u_int16_t hw_addrlen, u_int16_t hw_pad, u_int8_t hw_addr0, u_int8_t hw_addr1, u_int8_t hw_addr2, u_int8_t hw_addr3, u_int8_t hw_addr4, u_int8_t hw_addr5, u_int8_t hw_addr6, u_int8_t hw_addr7, int queue_id);
+// extern int handle(uint32_t id, unsigned char* buffer, int len, int has_uid, int has_gid, u_int32_t uid, u_int32_t gid, u_int32_t indev, u_int32_t outdev, u_int32_t physindev, u_int32_t physoutdev, u_int32_t nfmark, u_int16_t hw_addrlen, u_int16_t hw_pad, u_int8_t hw_addr0, u_int8_t hw_addr1, u_int8_t hw_addr2, u_int8_t hw_addr3, u_int8_t hw_addr4, u_int8_t hw_addr5, u_int8_t hw_addr6, u_int8_t hw_addr7, int queue_id);
 
 int nfqueue_cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg, struct nfq_data *nfa, void *cb_data)
 {
@@ -53,10 +56,12 @@ int nfqueue_cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg, struct nfq_data 
     struct nfqnl_msg_packet_hdr *ph = nfq_get_msg_packet_hdr(nfa);
     uint32_t id = ntohl(ph->packet_id);
     int ret = nfq_get_payload(nfa, &buffer);
-    u_int32_t uid = 0;
-    u_int32_t gid = 0;
-    int has_uid = nfq_get_uid(nfa, &uid);
-    int has_gid = nfq_get_gid(nfa, &gid);
+    // Main distribs still use libnetfilter_queue 1.0.2, which does not contain UID and GID stuff
+    // To work on most systems, I disable them for now
+    // u_int32_t uid = 0;
+    // u_int32_t gid = 0;
+    // int has_uid = nfq_get_uid(nfa, &uid);
+    // int has_gid = nfq_get_gid(nfa, &gid);
     u_int32_t indev = nfq_get_indev(nfa);
     u_int32_t outdev = nfq_get_outdev(nfa);
     u_int32_t physindev = nfq_get_physindev(nfa);
@@ -85,7 +90,8 @@ int nfqueue_cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg, struct nfq_data 
         hw_addr6 = packet_hw->hw_addr[6];
         hw_addr7 = packet_hw->hw_addr[7];
     }
-    return handle(id, buffer, ret, has_uid, has_gid, uid, gid, indev, outdev, physindev, physoutdev, nfmark, hw_addrlen, hw_pad, hw_addr0, hw_addr1, hw_addr2, hw_addr3, hw_addr4, hw_addr5, hw_addr6, hw_addr7, (intptr_t)cb_data);
+    return handle(id, buffer, ret, indev, outdev, physindev, physoutdev, nfmark, hw_addrlen, hw_pad, hw_addr0, hw_addr1, hw_addr2, hw_addr3, hw_addr4, hw_addr5, hw_addr6, hw_addr7, (intptr_t)cb_data);
+    // return handle(id, buffer, ret, has_uid, has_gid, uid, gid, indev, outdev, physindev, physoutdev, nfmark, hw_addrlen, hw_pad, hw_addr0, hw_addr1, hw_addr2, hw_addr3, hw_addr4, hw_addr5, hw_addr6, hw_addr7, (intptr_t)cb_data);
 }
 
 static struct nfq_q_handle *nfqueue_create_queue(struct nfq_handle *h, u_int16_t queue_id) {
