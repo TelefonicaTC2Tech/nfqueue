@@ -29,6 +29,7 @@ import "C"
 import (
 	"errors"
 	"fmt"
+	"net"
 	"unsafe"
 )
 
@@ -49,6 +50,50 @@ type PacketMeta struct {
 	PhysOutDev uint32
 	NFMark     uint32
 	HWAddr     []byte
+}
+
+// InDevName returns the name of the input interface
+func (m *PacketMeta) InDevName() string {
+	iface, err := net.InterfaceByIndex(int(m.InDev))
+	if err != nil {
+		return ""
+	}
+	return iface.Name
+}
+
+// OutDevName returns the name of the output interface
+func (m *PacketMeta) OutDevName() string {
+	iface, err := net.InterfaceByIndex(int(m.OutDev))
+	if err != nil {
+		return ""
+	}
+	return iface.Name
+}
+
+// PhysInDevName returns the name of the physical input interface
+func (m *PacketMeta) PhysInDevName() string {
+	iface, err := net.InterfaceByIndex(int(m.PhysInDev))
+	if err != nil {
+		return ""
+	}
+	return iface.Name
+}
+
+// PhysOutDevName returns the name of the physical output interface
+func (m *PacketMeta) PhysOutDevName() string {
+	iface, err := net.InterfaceByIndex(int(m.PhysOutDev))
+	if err != nil {
+		return ""
+	}
+	return iface.Name
+}
+
+// MACAddr returns the human-readable value of the MAC address for the packet source
+func (m *PacketMeta) MACAddr() string {
+	return fmt.Sprintf(
+		"%02X:%02X:%02X:%02X:%02X:%02X",
+		m.HWAddr[0], m.HWAddr[1], m.HWAddr[2], m.HWAddr[3], m.HWAddr[4], m.HWAddr[5],
+	)
 }
 
 // Packet struct provides the packet data and methods to accept, drop or modify the packet.
