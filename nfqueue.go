@@ -37,9 +37,24 @@ type PacketHandler interface {
 	Handle(p *Packet)
 }
 
+// PacketMeta contains metadata about a packet
+type PacketMeta struct {
+	HasUID     bool
+	HasGID     bool
+	UID        uint32
+	GID        uint32
+	InDev      uint32
+	OutDev     uint32
+	PhysInDev  uint32
+	PhysOutDev uint32
+	NFMark     uint32
+	HWAddr     []byte
+}
+
 // Packet struct provides the packet data and methods to accept, drop or modify the packet.
 type Packet struct {
 	Buffer []byte
+	Meta   *PacketMeta
 	id     uint32
 	q      *Queue
 }
