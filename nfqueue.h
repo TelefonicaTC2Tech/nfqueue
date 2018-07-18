@@ -18,9 +18,6 @@
 #ifndef _GO_NFQUEUE_H
 #define _GO_NFQUEUE_H
 
-// XXX
-#include <stdio.h>
-
 #include <netinet/in.h>
 #include <unistd.h>
 #include <linux/netfilter.h>
