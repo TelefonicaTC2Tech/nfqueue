@@ -85,22 +85,22 @@ import (
 )
 
 type Queue struct {
-    id    uint16
+	id    uint16
 	queue *nfqueue.Queue
 }
 
 func NewQueue(id uint16) *Queue {
-    q := &Queue{
-        id: id,
-    }
-    queueCfg := &nfqueue.QueueConfig{
+	q := &Queue{
+		id: id,
+	}
+	queueCfg := &nfqueue.QueueConfig{
 		MaxPackets: 1000,
 		BufferSize: 16 * 1024 * 1024,
 		QueueFlags: []nfqueue.QueueFlag{nfqueue.FailOpen},
 	}
-    // Pass as packet handler the current instance because it implements nfqueue.PacketHandler interface
-    q.queue = nfqueue.NewQueue(q.id, q, queueCfg)
-    return q
+	// Pass as packet handler the current instance because it implements nfqueue.PacketHandler interface
+	q.queue = nfqueue.NewQueue(q.id, q, queueCfg)
+	return q
 }
 
 // Start the queue.
@@ -115,15 +115,29 @@ func (q *Queue) Stop() error {
 
 // Handle a nfqueue packet. It implements nfqueue.PacketHandler interface.
 func (q *Queue) Handle(p *nfqueue.Packet) {
-    // Accept the packet
-    p.Accept()
+	// Accept the packet
+	p.Accept()
 }
 
 func main() {
-    q := NewQueue(1)
-    go q.Start()
+	q := NewQueue(1)
+	go q.Start()
 }
 ```
+
+## Performance
+
+This library is inspired in other nfqueue go bindings. The main difference is that our design does not use go channels to process the packets to avoid introducing an overhead that degrades performance. Note that nfqueue cannot process multiple packets from the same queue concurrently.
+
+The following table compares nfqueue with [freki](https://github.com/kung-foo/freki) using a host with 4 CPU cores:
+
+| Library | 2 queues | 4 queues |
+| ------- | -------- | -------- |
+| freki | 25000 req/s | 22000 req/s |
+| nfqueue | 22000 req/s | 38500 req/s |
+
+Tuning the amount of nfqueue queues with the amount of CPU cores, this library achieves a 75% improvement over freki.
+
 
 ## License
 
