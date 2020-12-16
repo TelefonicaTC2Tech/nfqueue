@@ -23,12 +23,14 @@ package nfqueue
 #cgo LDFLAGS: -L/usr/lib64/
 
 #include "nfqueue.h"
+#include "errno.h"
 */
 import "C"
 
 import (
 	"errors"
 	"fmt"
+	"syscall"
 	"unsafe"
 )
 
@@ -171,14 +173,17 @@ func (q *Queue) Start() error {
 
 // Stop the netfilter queue.
 func (q *Queue) Stop() error {
-	if C.close(q.fd) < 0 {
-		return errors.New("Error closing fd")
-	}
 	if C.nfq_destroy_queue(q.qh) < 0 {
 		return errors.New("Error in nfq_destroy_queue")
 	}
 	if C.nfq_close(q.h) < 0 {
 		return errors.New("Error in nfq_close")
+	}
+	if _, err := C.close(q.fd); err != nil {
+		// EBADF(9) error not considered, fd already freed by nfq commands.
+		if errno := int(err.(syscall.Errno)); errno != C.EBADF {
+			return fmt.Errorf("Error closing fd(%d): %s (%d)", q.fd, err, errno)
+		}
 	}
 	return nil
 }
